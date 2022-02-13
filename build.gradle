@@ -1,0 +1,50 @@
+/*
+ * Copyright (c) 2022 Vikash Madhow
+ */
+
+/**
+ * Encodes ESQL Result into different forms suited for transmission.
+ *
+ * @author Vikash Madhow (vikash.madhow@gmail.com)
+ */
+
+plugins {
+  id "java-library"
+  id "maven-publish"
+}
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+}
+
+dependencies {
+  implementation("ma.vi:esql:latest.release")
+  implementation("commons-io:commons-io:latest.release")
+  implementation("org.apache.commons:commons-lang3:latest.release")
+
+  testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+}
+
+test {
+  useJUnitPlatform()
+}
+
+group "ma.vi"
+version "0.1.0"
+
+ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+sourceCompatibility = JavaVersion.VERSION_17
+
+java {
+  withJavadocJar()
+  withSourcesJar()
+}
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      from components.java
+    }
+  }
+}
