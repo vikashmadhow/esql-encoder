@@ -4,6 +4,7 @@
 
 package ma.vi.esql.encoder;
 
+import ma.vi.base.io.IO;
 import ma.vi.esql.database.Database;
 import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.exec.EsqlConnection;
@@ -11,6 +12,7 @@ import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.ResultColumn;
 import ma.vi.esql.syntax.Parser;
 import ma.vi.esql.syntax.Program;
+import ma.vi.esql.syntax.expression.literal.UuidLiteral;
 import org.junit.jupiter.api.BeforeAll;
 
 import java.util.Arrays;
@@ -252,6 +254,20 @@ public class DataTest {
     if (!first) {
       System.out.println('+' + repeat(repeat('-', columnWidth) + '+', rs.columnsCount()));
     }
+  }
+
+
+
+  public static String loadTextResource(String res) {
+    try {
+      return IO.readAllAsString(DataTest.class.getResourceAsStream(res));
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static String hideUuids(String s) {
+    return UuidLiteral.PATTERN.matcher(s).replaceAll("00000000-0000-0000-0000-000000000000");
   }
 
   private static String lengthen(String val, int length) {

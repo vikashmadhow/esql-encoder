@@ -20,8 +20,8 @@ public interface ResultEncoder {
     encode(result, new OutputStreamWriter(out, UTF_8), params);
   }
 
-  default void encode(Result        result,
-                      OutputStream  out) {
+  default void encode(Result       result,
+                      OutputStream out) {
     encode(result, out, Configuration.EMPTY);
   }
 

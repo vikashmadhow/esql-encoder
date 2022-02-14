@@ -1,16 +1,15 @@
 package ma.vi.esql.encoder;
 
-import ma.vi.base.io.IO;
 import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Result;
-import ma.vi.esql.syntax.expression.literal.UuidLiteral;
+import org.json.JSONObject;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
 import java.io.StringWriter;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 /**
@@ -58,11 +57,9 @@ public class JsonEncoderTest extends DataTest {
 
                      StringWriter sw = new StringWriter();
                      encoder.encode(rs, sw);
-
-                     System.out.println(sw);
-
-                     assertEquals(IO.readAllAsString(getClass().getResourceAsStream("/testout1.json")),
-                                  UuidLiteral.PATTERN.matcher(sw.toString()).replaceAll("00000000-0000-0000-0000-000000000000"));
+//                     System.out.println(sw);
+                     assertTrue(new JSONObject(hideUuids(loadTextResource("/testout1.json")))
+                                      .similar(new JSONObject(hideUuids(sw.toString()))));
                    }
                  }));
   }

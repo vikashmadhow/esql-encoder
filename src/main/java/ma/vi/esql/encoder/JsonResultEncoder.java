@@ -15,10 +15,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
@@ -223,6 +220,40 @@ public class JsonResultEncoder implements ResultEncoder {
 
     } else if (value instanceof JSONObject json) {
       return json.toString(indent);
+
+    } else if (value instanceof Map<?, ?> map) {
+      /*
+       * Output map as JSON object.
+       */
+      StringBuilder st = new StringBuilder("{");
+      boolean first = true;
+      for (Map.Entry<?, ?> e: map.entrySet()) {
+        if (first) {
+          st.append(indent > 0 ? "\n" : "");
+          first = false;
+        } else {
+          st.append(",\n");
+        }
+        st.append(repeat(' ', indent))
+          .append(quote(e.getKey().toString())).append(':')
+          .append(toJson(e.getValue(), indent + 1));
+      }
+      st.append('}');
+      return st.toString();
+
+    } else if (value instanceof Collection<?> col) {
+      /*
+       * Output collections as JSON array.
+       */
+      StringBuilder st = new StringBuilder("[");
+      boolean first = true;
+      for (Object e: col) {
+        if (first) first = false;
+        else       st.append(",\n");
+        st.append(toJson(e, indent + 1));
+      }
+      st.append(']');
+      return st.toString();
 
     } else if (value.getClass().isArray()) {
       /*
