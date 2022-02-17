@@ -256,8 +256,6 @@ public class DataTest {
     }
   }
 
-
-
   public static String loadTextResource(String res) {
     try {
       return IO.readAllAsString(DataTest.class.getResourceAsStream(res));

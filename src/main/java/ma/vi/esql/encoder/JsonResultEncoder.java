@@ -78,7 +78,7 @@ public class JsonResultEncoder implements ResultEncoder {
                      Writer        out,
                      Configuration params) {
     try {
-      int indent = params.param("indent", 2);
+      int indent = params.get("indent", 2);
       out.write("{\n");
 
       boolean hasPrevious = false;
