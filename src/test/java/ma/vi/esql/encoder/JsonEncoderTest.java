@@ -38,7 +38,8 @@ public class JsonEncoderTest extends DataTest {
                               c int default 5,
                               d int,
                               e = b+c+d {
-                                m3: 10
+                                m3: 10,
+                                "values": {"any": {en: 'Any', fr: 'Une ou plusieurs'}, "all": {en: 'All', fr: 'Toutes'}}
                               },
                               primary key(_id),
                               unique(a),
@@ -57,7 +58,7 @@ public class JsonEncoderTest extends DataTest {
 
                      StringWriter sw = new StringWriter();
                      encoder.encode(rs, sw);
-//                     System.out.println(sw);
+                     System.out.println(sw);
                      assertTrue(new JSONObject(hideUuids(loadTextResource("/testout1.json")))
                                       .similar(new JSONObject(hideUuids(sw.toString()))));
                    }
