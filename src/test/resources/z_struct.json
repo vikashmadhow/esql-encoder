@@ -1,0 +1,29 @@
+{
+  "$m":{
+    "references":[{"to_table":"test.X","to_columns":["_id"],"from_columns":["x_id"]},{"to_table":"test.Y","to_columns":["_id"],"from_columns":["y_id"]}],
+    "primary_key":["_id"]
+  },
+  "columns":{
+    "_id":{
+      "type":"uuid",
+      "required":true,
+      "primary_key":true
+    },
+    "a":{
+      "type":"int",
+      "required":true
+    },
+    "b":{
+      "type":"int",
+      "required":true
+    },
+    "x_id":{
+      "type":"uuid",
+      "references":[{"to_table":"test.X","to_columns":"_id"}]
+    },
+    "y_id":{
+      "type":"uuid",
+      "references":[{"to_table":"test.Y","to_columns":"_id"}]
+    }
+  }
+}

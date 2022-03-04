@@ -1,11 +1,13 @@
 {
   "$m":{
     "xc":"Result Metadata",
-    "unique":[["a","b"],["b","c","d"]]
+    "primary_key":["_id"],
+    "unique":[["a"],["a","b"],["b","c","d"]]
   },
   "columns":{
     "_id":{
       "type":"uuid",
+      "primary_key":true,
       "required":true
     },
     "a":{

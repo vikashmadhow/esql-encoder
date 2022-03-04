@@ -5,9 +5,15 @@
 package ma.vi.esql.encoder;
 
 import ma.vi.base.config.Configuration;
+import ma.vi.base.tuple.T2;
 import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.ResultColumn;
+import ma.vi.esql.semantic.type.Column;
+import ma.vi.esql.semantic.type.Relation;
+import ma.vi.esql.syntax.define.Attribute;
+import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.literal.Literal;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -78,11 +84,148 @@ public class JsonResultEncoder implements ResultEncoder {
                      Writer        out,
                      Configuration params) {
     try {
-      int indent = params.get("indent", 2);
-      out.write("{\n");
+      int indent = params.get(INDENT, 2);
+      boolean rowsOnly = params.get(ROWS_ONLY, false);
+      boolean outputStructure = !rowsOnly;
+      boolean outputRows = !params.get(STRUCTURE_ONLY, false);
 
+      if (!rowsOnly) out.write("{\n");
       boolean hasPrevious = false;
-      Map<String, Object> attributes = rs.query.resultAttributes();
+      List<ColumnMapping> columns = rs.columns();
+      if (outputStructure) {
+        Map<String, Object> attributes = rs.query.resultAttributes();
+        if (attributes != null && !attributes.isEmpty()) {
+          /*
+           * Output result metadata. E.g.:
+           *    $m: {
+           *      type: "a.A",
+           *      unique: [["_id"], ["a", "b"]]
+           *    }
+           */
+          out.write("\"$m\":{\n");
+          boolean first = true;
+          for (Map.Entry<String, Object> a: attributes.entrySet()) {
+            if (first) first = false;
+            else       out.write(",\n");
+            out.write(repeat(' ', indent)
+                    + '"' + a.getKey() + "\":"
+                    + toJson(a.getValue(), indent));
+          }
+          out.write("\n}");
+          hasPrevious = true;
+        }
+
+        columns = columns == null ? emptyList() : columns;
+        if (!columns.isEmpty()) {
+          /*
+           * columns in their loaded order (the same order that the rows are
+           * outputted) along with their base metadata. E.g:
+           *    columns: {
+           *      _id: {
+           *        type: "uuid",
+           *        required: false,
+           *        readonly: true,
+           *        label: "Id"
+           *      },
+           *  ...
+           */
+          if (hasPrevious) out.write(",\n");
+          out.write("\"columns\":{");
+          boolean first = true;
+          for (ColumnMapping c: columns) {
+            if (first) {
+              out.write("\n");
+              first = false;
+            } else {
+              out.write(",\n");
+            }
+            out.write(repeat(' ', indent)
+                    + '"' + c.column().name() + "\":{\n");
+
+            if (c.attributes() != null
+            && !c.attributes().isEmpty()) {
+              boolean firstIndex = true;
+              for (Map.Entry<String, Object> e: c.attributes().entrySet()) {
+                if (!e.getKey().equals("_id")) {
+                  if (firstIndex) firstIndex = false;
+                  else            out.write(",\n");
+                  out.write(repeat(' ', indent * 2)
+                          + '"' + e.getKey() + "\":" + toJson(e.getValue(), indent));
+                }
+              }
+            }
+            out.write('\n' + repeat(' ', indent) + "}");
+          }
+          out.write("\n}");
+          hasPrevious = true;
+        }
+      }
+
+      if (outputRows) {
+        boolean first = true;
+        int columnCount = rs.columnsCount();
+        while (rs.toNext()) {
+          if (first) {
+            if (hasPrevious) out.write(",\n");
+            if (!rowsOnly) out.write("\"rows\":");
+            out.write("[\n");
+            first = false;
+          } else {
+            out.write(",\n");
+          }
+          out.write(repeat(' ', indent) + '[');
+          for (int c = 1; c <= columnCount; c++) {
+            if (c > 1) out.write(", ");
+            ResultColumn<?> col = rs.get(c);
+            ColumnMapping colMap = columns.get(c-1);
+            if (colMap.attributeIndices().isEmpty()) {
+              /*
+               * No computed metadata: output row value only.
+               */
+              out.write(toJson(col.value(), indent));
+            } else {
+              /*
+               * Only output metadata not already included in column header.
+               */
+              Set<String> keys = col.metadata().keySet().stream()
+                                    .filter(k -> !colMap.attributes().containsKey(k))
+                                    .collect(Collectors.toSet());
+              if (keys.isEmpty()) {
+                out.write(toJson(col.value(), indent));
+
+              } else {
+                out.write("{\"$v\":" + toJson(col.value(), indent)
+                        + ", \"$m\":{"
+                        + keys.stream()
+                              .map(k -> '"' + k + "\":"
+                                      + toJson(col.metadata().get(k), indent))
+                              .collect(Collectors.joining(", "))
+                        + "}}");
+              }
+            }
+          }
+          out.write(']');
+        }
+        if (!first) out.write("\n]\n");
+      }
+      if (!rowsOnly) out.write("}");
+    } catch (IOException ioe) {
+      throw new RuntimeException(ioe);
+    }
+  }
+
+  @Override
+  public void encode(Relation      relation,
+                     Writer        out,
+                     Configuration params) {
+    try {
+      int indent = params.get(INDENT, 2);
+
+      out.write("{\n");
+      boolean hasPrevious = false;
+      List<T2<Relation, Column>> columns = relation.columns();
+
+      Map<String, Attribute> attributes = relation.attributes();
       if (attributes != null && !attributes.isEmpty()) {
         /*
          * Output result metadata. E.g.:
@@ -93,23 +236,22 @@ public class JsonResultEncoder implements ResultEncoder {
          */
         out.write("\"$m\":{\n");
         boolean first = true;
-        for (Map.Entry<String, Object> a: attributes.entrySet()) {
+        for (Map.Entry<String, Attribute> a: attributes.entrySet()) {
           if (first) first = false;
           else       out.write(",\n");
           out.write(repeat(' ', indent)
                   + '"' + a.getKey() + "\":"
-                  + toJson(a.getValue(), indent));
+                  + toJson(a.getValue().evaluateAttribute(), indent));
         }
         out.write("\n}");
         hasPrevious = true;
       }
 
-      List<ColumnMapping> columns = rs.columns();
       columns = columns == null ? emptyList() : columns;
       if (!columns.isEmpty()) {
         /*
-         * columns in their loaded order (the same order that the rows are outputted)
-         * along with their base metadata. E.g:
+         * columns in their loaded order (the same order that the rows are
+         * outputted) along with their base metadata. E.g:
          *    columns: {
          *      _id: {
          *        type: "uuid",
@@ -122,76 +264,41 @@ public class JsonResultEncoder implements ResultEncoder {
         if (hasPrevious) out.write(",\n");
         out.write("\"columns\":{");
         boolean first = true;
-        for (ColumnMapping c: columns) {
-          if (first) {
-            out.write("\n");
-            first = false;
-          } else {
-            out.write(",\n");
-          }
-          out.write(repeat(' ', indent)
-                  + '"' + c.column().name() + "\":{\n");
-
-          if (c.attributes() != null
-          && !c.attributes().isEmpty()) {
-            boolean firstIndex = true;
-            for (Map.Entry<String, Object> e: c.attributes().entrySet()) {
-              if (firstIndex) firstIndex = false;
-              else            out.write(",\n");
-              out.write(repeat(' ', indent * 2)
-                      + '"' + e.getKey() + "\":" + toJson(e.getValue(), indent));
+        for (T2<Relation, Column> col: columns) {
+          Column c = col.b();
+          if (!c.name().contains("/")) {
+            if (first) {
+              out.write("\n");
+              first = false;
+            } else {
+              out.write(",\n");
             }
+            out.write(repeat(' ', indent)
+                    + '"' + c.name() + "\":{");
+
+            if (c.metadata() != null
+            &&  c.metadata().attributes() != null
+            && !c.metadata().attributes().isEmpty()) {
+              out.write('\n');
+              boolean firstIndex = true;
+              for (Attribute a: c.metadata().attributes().values()) {
+                if (!a.name().equals("_id")) {
+                  Expression<?, String> value = a.attributeValue();
+                  if (value instanceof Literal<?>) {
+                    if (firstIndex) firstIndex = false;
+                    else            out.write(",\n");
+                    out.write(repeat(' ', indent * 2)
+                            + '"' + a.name() + "\":" + toJson(a.evaluateAttribute(), indent));
+                  }
+                }
+              }
+              out.write('\n' + repeat(' ', indent));
+            }
+            out.write("}");
           }
-          out.write('\n' + repeat(' ', indent) + "}");
         }
         out.write("\n}");
-        hasPrevious = true;
       }
-
-      boolean first = true;
-      int columnCount = rs.columnsCount();
-      while (rs.toNext()) {
-        if (first) {
-          if (hasPrevious) out.write(",\n");
-          out.write("\"rows\":[\n");
-          first = false;
-        } else {
-          out.write(",\n");
-        }
-        out.write(repeat(' ', indent) + '[');
-        for (int c = 1; c <= columnCount; c++) {
-          if (c > 1) out.write(", ");
-          ResultColumn<?> col = rs.get(c);
-          ColumnMapping colMap = columns.get(c-1);
-          if (colMap.attributeIndices().isEmpty()) {
-            /*
-             * No computed metadata: output row value only.
-             */
-            out.write(toJson(col.value(), indent));
-          } else {
-            /*
-             * Only output metadata not already included in column header.
-             */
-            Set<String> keys = col.metadata().keySet().stream()
-                                  .filter(k -> !colMap.attributes().containsKey(k))
-                                  .collect(Collectors.toSet());
-            if (keys.isEmpty()) {
-              out.write(toJson(col.value(), indent));
-
-            } else {
-              out.write("{\"$v\":" + toJson(col.value(), indent)
-                      + ", \"$m\":{"
-                      + keys.stream()
-                            .map(k -> '"' + k + "\":"
-                                    + toJson(col.metadata().get(k), indent))
-                            .collect(Collectors.joining(", "))
-                      + "}}");
-            }
-          }
-        }
-        out.write(']');
-      }
-      if (!first) out.write("\n]\n");
       out.write("}");
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
@@ -200,6 +307,10 @@ public class JsonResultEncoder implements ResultEncoder {
 
   /**
    * Encode the (database) value as a JSON value.
+   * @param value The value to encode.
+   * @param indent The number of spaces to use for indentation of JSON elements
+   *               in the encoded output.
+   * @return The encoded value.
    */
   public static String toJson(Object value, int indent) {
     if (value == null) {
@@ -280,8 +391,8 @@ public class JsonResultEncoder implements ResultEncoder {
   }
 
   /**
-   * To send data to a Javascript client, ignore time zone as this is not kept in
-   * the database.
+   * To send data to a Javascript client, ignore time zone as this is not kept
+   * in the database.
    */
   public static final SimpleDateFormat TO_JAVASCRIPT_DATE =
       new SimpleDateFormat("yyyy-MM-d H:m:s.S");

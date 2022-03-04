@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2022-03-05
+### Added
+- Encoding of structure of relations.
+- Control through parameters of which parts to encode: structure only, rows only,
+  structure and rows (default).
+- Utility methods to encode structure and rows into strings (using a `StringWriter`).
+
+### Changed
+- All methods documented.
+- Gradle build file normalised.
+- INDENT parameter constant to set number of indentation spaces in configuration.
+
 ## [0.1.3] - 2022-02-26
 ### Added
 - Complies with changes to latest ESQL version (0.8.9).
