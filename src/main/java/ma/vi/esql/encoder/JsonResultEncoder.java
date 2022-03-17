@@ -283,7 +283,7 @@ public class JsonResultEncoder implements ResultEncoder {
               boolean firstIndex = true;
               for (Attribute a: c.metadata().attributes().values()) {
                 if (!a.name().equals("_id")) {
-                  Expression<?, String> value = a.attributeValue();
+                  Expression<?, ?> value = a.attributeValue();
                   if (value instanceof Literal<?>) {
                     if (firstIndex) firstIndex = false;
                     else            out.write(",\n");
