@@ -9,8 +9,6 @@ import ma.vi.esql.database.Database;
 import ma.vi.esql.database.Postgresql;
 import ma.vi.esql.database.SqlServer;
 
-import java.util.Map;
-
 import static ma.vi.esql.database.Database.*;
 
 /**

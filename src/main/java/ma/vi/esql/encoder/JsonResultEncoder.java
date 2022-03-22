@@ -54,13 +54,13 @@ import static org.json.JSONObject.quote;
  *        $e: "$(b + c)"
  *      },
  *      ...
- *    ],
+ *    },
  *
  *    rows: [
  *      [r1_c1, r1_c2, ..., r1_cn],
  *      [r2_c1, r2_c2, ..., r2_cn],
  *      ...
- *      [rm_c1, rm_c2, ..., rm_cn],
+ *      [rm_c1, rm_c2, ..., rm_cn]
  *    ]
  *   }
  * </pre>
@@ -388,6 +388,15 @@ public class JsonResultEncoder implements ResultEncoder {
        */
       return quote(value.toString());
     }
+  }
+
+  /**
+   * Encode the (database) value as a JSON value.
+   * @param value The value to encode.
+   * @return The encoded value.
+   */
+  public static String toJson(Object value) {
+    return toJson(value, 0);
   }
 
   /**
