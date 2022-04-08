@@ -14,6 +14,7 @@ import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.literal.Literal;
+import ma.vi.esql.translation.StringForm;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -379,8 +380,13 @@ public class JsonResultEncoder implements ResultEncoder {
       st.append(']');
       return st.toString();
 
-    } else if (value instanceof Date) {
-      return '"' + TO_JAVASCRIPT_DATE.format((Date)value) + '"';
+    } else if (value instanceof Date d) {
+      return '"' + TO_JAVASCRIPT_DATE.format(d) + '"';
+
+    } else if (value instanceof StringForm sf) {
+      StringBuilder st = new StringBuilder();
+      sf._toString(st, 0, indent);
+      return quote(st.toString());
 
     } else {
       /*
