@@ -20,8 +20,7 @@ public class Databases {
       postgresql = new Postgresql(Configuration.of(
           CONFIG_DB_NAME, "test",
           CONFIG_DB_USER, "test",
-          CONFIG_DB_PASSWORD, "test",
-          CONFIG_DB_CREATE_CORE_TABLES, true));
+          CONFIG_DB_PASSWORD, "test"));
 //      createTestTables(postgresql);
     }
     return postgresql;
@@ -32,8 +31,7 @@ public class Databases {
       sqlServer = new SqlServer(Configuration.of(
           CONFIG_DB_NAME, "test",
           CONFIG_DB_USER, "test",
-          CONFIG_DB_PASSWORD, "test",
-          CONFIG_DB_CREATE_CORE_TABLES, true));
+          CONFIG_DB_PASSWORD, "test"));
 //      createTestTables(sqlServer);
     }
     return sqlServer;

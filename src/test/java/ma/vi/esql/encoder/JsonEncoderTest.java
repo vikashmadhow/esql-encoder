@@ -1,7 +1,7 @@
 package ma.vi.esql.encoder;
 
 import ma.vi.base.config.Configuration;
-import ma.vi.esql.exec.EsqlConnection;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.Result;
 import org.json.JSONArray;
 import org.json.JSONObject;

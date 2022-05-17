@@ -6,8 +6,8 @@ package ma.vi.esql.encoder;
 
 import ma.vi.base.io.IO;
 import ma.vi.esql.database.Database;
+import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.ColumnMapping;
-import ma.vi.esql.exec.EsqlConnection;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.ResultColumn;
 import ma.vi.esql.syntax.Parser;
