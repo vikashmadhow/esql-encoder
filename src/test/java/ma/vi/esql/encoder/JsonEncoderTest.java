@@ -26,7 +26,7 @@ public class JsonEncoderTest extends DataTest {
                      con.exec("""
                             create table test.X drop undefined({
                                 xc: 'Result Metadata'
-                              },
+                              }
                               _id uuid not null,
                               a int {
                                 m1: 1
@@ -76,7 +76,7 @@ public class JsonEncoderTest extends DataTest {
                      con.exec("""
                             create table test.X drop undefined({
                                 xc: 'Result Metadata'
-                              },
+                              }
                               _id uuid not null,
                               a int not null {
                                 m1: 1
