@@ -84,7 +84,8 @@ public class JsonEncoderTest extends DataTest {
                               b int not null {
                                 m1: 'abc',
                                 m2: b + c,
-                                m3: 2 * b
+                                m3: 2 * $a('m1'),
+                                m4: from s:S select max(s.a) where s.a > this.b
                               },
                               c int default 5,
                               d int,
@@ -145,6 +146,9 @@ public class JsonEncoderTest extends DataTest {
                               """);
 
                      ResultEncoder encoder = new JsonResultEncoder();
+
+                     System.out.println(new JSONObject(encoder.encode(db.structure().relation("test.X"))));
+
                      assertTrue(new JSONObject(loadTextResource("/x_struct.json"))
                                       .similar(new JSONObject(encoder.encode(db.structure().relation("test.X")))));
                      assertTrue(new JSONObject(loadTextResource("/y_struct.json"))

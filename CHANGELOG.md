@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0]
+### Added
+- Encode expressions to calculate values of derived columns in table structures.
+- Encode expressions to calculate values of computed attributes (e.g. `required: a % 2=0`).
+- Change columns references in expressions to be calculated on client-side to 
+  refer to the containing objects and values correctly.
+- Attribute with expression values are now included in JSON encoding.
+- Support for encoding of `java.time` `LocalDate`, `LocalTime` and `LocalDateTime`.
+- Expressions are encoded in a form that can be executed in a Javascript context.
+  If this encoding fails, the expression are encoded as an ESQL statement.
+- Complies with ESQL 1.0.0.
+
 ## [0.2.5] - 2022-05-23
 ### Changed
 - Complies with ESQL 0.9.7.

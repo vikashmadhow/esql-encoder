@@ -11,21 +11,32 @@ import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.ResultColumn;
 import ma.vi.esql.semantic.type.Column;
 import ma.vi.esql.semantic.type.Relation;
+import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.expression.Expression;
 import ma.vi.esql.syntax.expression.literal.Literal;
 import ma.vi.esql.translation.StringForm;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.pcollections.HashPMap;
+import org.pcollections.IntTreePMap;
 
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
+import static ma.vi.esql.database.Database.NULL_DB;
+import static ma.vi.esql.database.EsqlConnection.NULL_CONNECTION;
+import static ma.vi.esql.translation.Translatable.Target.ESQL;
+import static ma.vi.esql.translation.Translatable.Target.JAVASCRIPT;
 import static org.apache.commons.lang3.StringUtils.repeat;
 import static org.json.JSONObject.quote;
 
@@ -39,22 +50,22 @@ import static org.json.JSONObject.quote;
  *    $m: {
  *      type: "a.A",
  *      unique: [["_id"], ["a", "b"]]
- *    },
  *
- *    // columns in their loaded order (the same order that the rows are outputted)
- *    // along with their base metadata
- *    columns: {
- *      _id: {
- *        type: "uuid",
- *        required: false,
- *        readonly: true
+ *      // columns in their loaded order (the same order that the rows are outputted)
+ *      // along with their base metadata
+ *      columns: {
+ *        _id: {
+ *          type: "uuid",
+ *          required: false,
+ *          readonly: true
+ *        },
+ *        a: {
+ *          type: "string",
+ *          label: "First",
+ *          $e: "$(b + c)"
+ *        },
+ *        ...
  *      },
- *      a: {
- *        type: "string",
- *        label: "First",
- *        $e: "$(b + c)"
- *      },
- *      ...
  *    },
  *
  *    rows: [
@@ -168,7 +179,7 @@ public class JsonResultEncoder implements ResultEncoder {
         while (rs.toNext()) {
           if (first) {
             if (hasPrevious) out.write(",\n");
-            if (!rowsOnly) out.write("\"rows\":");
+            if (!rowsOnly)   out.write("\"rows\":");
             out.write("[\n");
             first = false;
           } else {
@@ -240,9 +251,9 @@ public class JsonResultEncoder implements ResultEncoder {
         for (Map.Entry<String, Attribute> a: attributes.entrySet()) {
           if (first) first = false;
           else       out.write(",\n");
-          out.write(repeat(' ', indent)
-                  + '"' + a.getKey() + "\":"
-                  + toJson(a.getValue().evaluateAttribute(), indent));
+          out.write(repeat(' ', indent));
+          out.write('"' + a.getKey() + "\":");
+          out.write(toJson(a.getValue().attributeValue(), indent));
         }
         out.write("\n}");
         hasPrevious = true;
@@ -274,23 +285,26 @@ public class JsonResultEncoder implements ResultEncoder {
             } else {
               out.write(",\n");
             }
-            out.write(repeat(' ', indent)
-                    + '"' + c.name() + "\":{");
+            out.write(repeat(' ', indent) + '"' + c.name() + "\":{");
+
+            boolean firstIndex = true;
+            if (c.derived()) {
+              out.write('\n' + repeat(' ', indent * 2));
+              out.write("\"derived_expression\": ");
+              out.write(toJson(c.expression()));
+              firstIndex = false;
+            }
 
             if (c.metadata() != null
             &&  c.metadata().attributes() != null
             && !c.metadata().attributes().isEmpty()) {
-              out.write('\n');
-              boolean firstIndex = true;
+              if (firstIndex) out.write('\n');
               for (Attribute a: c.metadata().attributes().values()) {
                 if (!a.name().equals("_id")) {
-                  Expression<?, ?> value = a.attributeValue();
-                  if (value instanceof Literal<?>) {
-                    if (firstIndex) firstIndex = false;
-                    else            out.write(",\n");
-                    out.write(repeat(' ', indent * 2)
-                            + '"' + a.name() + "\":" + toJson(a.evaluateAttribute(), indent));
-                  }
+                  if (firstIndex) firstIndex = false;
+                  else            out.write(",\n");
+                  out.write(repeat(' ', indent * 2)
+                          + '"' + a.name() + "\":" + toJson(a.attributeValue(), indent));
                 }
               }
               out.write('\n' + repeat(' ', indent));
@@ -314,6 +328,25 @@ public class JsonResultEncoder implements ResultEncoder {
    * @return The encoded value.
    */
   public static String toJson(Object value, int indent) {
+    if (value instanceof Literal<?> l) {
+      try {
+        value = l.exec(JAVASCRIPT,
+                       NULL_CONNECTION,
+                       new EsqlPath(l),
+                       HashPMap.empty(IntTreePMap.empty()),
+                       NULL_DB.structure());
+      } catch(Exception x) {
+        value = l.exec(ESQL,
+                       NULL_CONNECTION,
+                       new EsqlPath(l),
+                       HashPMap.empty(IntTreePMap.empty()),
+                       NULL_DB.structure());
+      }
+    } else if (value instanceof Expression<?,?> e) {
+      try                { value = "$(" + e.translate(JAVASCRIPT) + ')'; }
+      catch(Exception x) { value = "$(" + e.translate(ESQL) + ')'; }
+    }
+
     if (value == null) {
       return "null";
 
@@ -382,6 +415,15 @@ public class JsonResultEncoder implements ResultEncoder {
 
     } else if (value instanceof Date d) {
       return '"' + TO_JAVASCRIPT_DATE.format(d) + '"';
+
+    } else if (value instanceof LocalDate d) {
+      return '"' + DateTimeFormatter.ISO_LOCAL_DATE.format(d) + '"';
+
+    } else if (value instanceof LocalTime d) {
+      return '"' + DateTimeFormatter.ISO_LOCAL_TIME.format(d) + '"';
+
+    } else if (value instanceof LocalDateTime d) {
+      return '"' + DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(d).replace('T', ' ') + '"';
 
     } else if (value instanceof StringForm sf) {
       StringBuilder st = new StringBuilder();
