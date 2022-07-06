@@ -34,7 +34,8 @@ public class JsonEncoderTest extends DataTest {
                               b int not null {
                                 m1: 'abc',
                                 m2: b + c,
-                                m3: 2 * b
+                                m3: 2 * b,
+                                m4: $(a.m1 * 5)
                               },
                               c int default 5,
                               d int,
@@ -56,7 +57,8 @@ public class JsonEncoderTest extends DataTest {
                               """);
                      ResultEncoder encoder = new JsonResultEncoder();
 
-                     Result rs = con.exec("select * from test.X order  by a");
+                     Result rs = con.exec("select * from t:test.X order by a");
+                     // System.out.println(encoder.encode(rs));
                      assertTrue(new JSONObject(hideUuids(loadTextResource("/testout1.json")))
                                   .similar(new JSONObject(hideUuids(encoder.encode(rs)))));
 
@@ -147,7 +149,7 @@ public class JsonEncoderTest extends DataTest {
 
                      ResultEncoder encoder = new JsonResultEncoder();
 
-                     System.out.println(new JSONObject(encoder.encode(db.structure().relation("test.X"))));
+                     // System.out.println(new JSONObject(encoder.encode(db.structure().relation("test.X"))));
 
                      assertTrue(new JSONObject(loadTextResource("/x_struct.json"))
                                       .similar(new JSONObject(encoder.encode(db.structure().relation("test.X")))));

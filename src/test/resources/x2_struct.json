@@ -1,7 +1,7 @@
 {
   "columns": {
     "a": {
-      "check/$e": "$((0 < a and a < 10))",
+      "check/$e": "$((0 < row.a.$v && row.a.$v < 10))",
       "m1": 1,
       "unique": true,
       "check": "$((0 < row.a.$v && row.a.$v < 10))",
@@ -15,7 +15,7 @@
       "required": true
     },
     "b": {
-      "check/$e": "$((b * 5 < 100) and (b > 0))",
+      "check/$e": "$((row.b.$v * 5 < 100) && (row.b.$v > 0))",
       "m1": "abc",
       "m2": "$(row.b.$v + row.c.$v)",
       "m3": "$(2 * row.a.$m.m1)",
@@ -124,6 +124,7 @@
         ]
       }
     ],
+    "type": "test.X",
     "primary_key": [
       "_id"
     ]

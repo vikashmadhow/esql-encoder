@@ -14,7 +14,9 @@ import ma.vi.esql.semantic.type.Relation;
 import ma.vi.esql.syntax.EsqlPath;
 import ma.vi.esql.syntax.define.Attribute;
 import ma.vi.esql.syntax.expression.Expression;
+import ma.vi.esql.syntax.expression.UncomputedExpression;
 import ma.vi.esql.syntax.expression.literal.Literal;
+import ma.vi.esql.syntax.query.SingleTableExpr;
 import ma.vi.esql.translation.StringForm;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -33,6 +35,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static ma.vi.esql.database.Database.NULL_DB;
 import static ma.vi.esql.database.EsqlConnection.NULL_CONNECTION;
 import static ma.vi.esql.translation.Translatable.Target.ESQL;
@@ -50,22 +53,22 @@ import static org.json.JSONObject.quote;
  *    $m: {
  *      type: "a.A",
  *      unique: [["_id"], ["a", "b"]]
+ *    },
  *
- *      // columns in their loaded order (the same order that the rows are outputted)
- *      // along with their base metadata
- *      columns: {
- *        _id: {
- *          type: "uuid",
- *          required: false,
- *          readonly: true
- *        },
- *        a: {
- *          type: "string",
- *          label: "First",
- *          $e: "$(b + c)"
- *        },
- *        ...
+ *    // columns in their loaded order (the same order that the rows are outputted)
+ *    // along with their base metadata
+ *    columns: {
+ *      _id: {
+ *        type: "uuid",
+ *        required: false,
+ *        readonly: true
  *      },
+ *      a: {
+ *        type: "string",
+ *        label: "First",
+ *        $e: "$(b + c)"
+ *      },
+ *      ...
  *    },
  *
  *    rows: [
@@ -105,8 +108,15 @@ public class JsonResultEncoder implements ResultEncoder {
       boolean hasPrevious = false;
       List<ColumnMapping> columns = rs.columns();
       if (outputStructure) {
-        Map<String, Object> attributes = rs.query.resultAttributes();
-        if (attributes != null && !attributes.isEmpty()) {
+        Map<String, Object> attributes = new HashMap<>(rs.query.resultAttributes() != null
+                                                     ? rs.query.resultAttributes()
+                                                     : emptyMap());
+        if (!attributes.containsKey("type")
+         && rs.query.query() != null) {
+          SingleTableExpr table = rs.query.query().tables().find(SingleTableExpr.class);
+          if (table != null) attributes.put("type", table.tableName());
+        }
+        if (!attributes.isEmpty()) {
           /*
            * Output result metadata. E.g.:
            *    $m: {
@@ -234,30 +244,30 @@ public class JsonResultEncoder implements ResultEncoder {
       int indent = params.get(INDENT, 2);
 
       out.write("{\n");
-      boolean hasPrevious = false;
       List<T2<Relation, Column>> columns = relation.columns();
-
-      Map<String, Attribute> attributes = relation.attributes();
-      if (attributes != null && !attributes.isEmpty()) {
-        /*
-         * Output result metadata. E.g.:
-         *    $m: {
-         *      type: "a.A",
-         *      unique: [["_id"], ["a", "b"]]
-         *    }
-         */
-        out.write("\"$m\":{\n");
-        boolean first = true;
-        for (Map.Entry<String, Attribute> a: attributes.entrySet()) {
-          if (first) first = false;
-          else       out.write(",\n");
-          out.write(repeat(' ', indent));
-          out.write('"' + a.getKey() + "\":");
-          out.write(toJson(a.getValue().attributeValue(), indent));
-        }
-        out.write("\n}");
-        hasPrevious = true;
+      Map<String, Attribute> attributes = new HashMap<>(relation.attributes() != null
+                                                      ? relation.attributes()
+                                                      : emptyMap());
+      if (!attributes.containsKey("type")) {
+        attributes.put("type", Attribute.from(null, "type", relation.name()));
       }
+      /*
+       * Output relation metadata. E.g.:
+       *    $m: {
+       *      type: "a.A",
+       *      unique: [["_id"], ["a", "b"]]
+       *    }
+       */
+      out.write("\"$m\":{\n");
+      boolean first = true;
+      for (Map.Entry<String, Attribute> a: attributes.entrySet()) {
+        if (first) first = false;
+        else       out.write(",\n");
+        out.write(repeat(' ', indent));
+        out.write('"' + a.getKey() + "\":");
+        out.write(toJson(a.getValue().attributeValue(), indent));
+      }
+      out.write("\n}");
 
       columns = columns == null ? emptyList() : columns;
       if (!columns.isEmpty()) {
@@ -273,9 +283,9 @@ public class JsonResultEncoder implements ResultEncoder {
          *      },
          *  ...
          */
-        if (hasPrevious) out.write(",\n");
+        out.write(",\n");
         out.write("\"columns\":{");
-        boolean first = true;
+        first = true;
         for (T2<Relation, Column> col: columns) {
           Column c = col.b();
           if (!c.name().contains("/")) {
@@ -329,18 +339,23 @@ public class JsonResultEncoder implements ResultEncoder {
    */
   public static String toJson(Object value, int indent) {
     if (value instanceof Literal<?> l) {
-      try {
-        value = l.exec(JAVASCRIPT,
-                       NULL_CONNECTION,
-                       new EsqlPath(l),
-                       HashPMap.empty(IntTreePMap.empty()),
-                       NULL_DB.structure());
-      } catch(Exception x) {
-        value = l.exec(ESQL,
-                       NULL_CONNECTION,
-                       new EsqlPath(l),
-                       HashPMap.empty(IntTreePMap.empty()),
-                       NULL_DB.structure());
+      if (value instanceof UncomputedExpression u) {
+        try                { value = u.translate(JAVASCRIPT); }
+        catch(Exception x) { value = u.translate(ESQL); }
+      } else {
+        try {
+          value = l.exec(JAVASCRIPT,
+                         NULL_CONNECTION,
+                         new EsqlPath(l),
+                         HashPMap.empty(IntTreePMap.empty()),
+                         NULL_DB.structure());
+        } catch(Exception x) {
+          value = l.exec(ESQL,
+                         NULL_CONNECTION,
+                         new EsqlPath(l),
+                         HashPMap.empty(IntTreePMap.empty()),
+                         NULL_DB.structure());
+        }
       }
     } else if (value instanceof Expression<?,?> e) {
       try                { value = "$(" + e.translate(JAVASCRIPT) + ')'; }

@@ -1,6 +1,7 @@
 {
   "$m":{
     "xc":"Result Metadata",
+    "type": "test.X",
     "primary_key":["_id"],
     "unique":[["a"],["a","b"],["b","c","d"]]
   },
@@ -17,9 +18,10 @@
     },
     "b":{
       "m1":"abc",
+      "m4":"$(row.a.$m.m1 * 5)",
+      "m2/$e":"$(row.b.$v + row.c.$v)",
       "type":"int",
-      "m2/$e":"$(X.b + X.c)",
-      "m3/$e":"$(2 * X.b)",
+      "m3/$e":"$(2 * row.b.$v)",
       "required":true
     },
     "c":{
@@ -30,7 +32,7 @@
       "type":"int"
     },
     "e":{
-      "$e":"$(X.b + X.c + X.d)",
+      "$e":"$(row.b.$v + row.c.$v + row.d.$v)",
       "m3":10,
       "values":{
         "all": {
