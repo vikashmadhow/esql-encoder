@@ -1,12 +1,12 @@
 {
   "columns": {
     "a": {
-      "check/$e": "$((0 < row.a.$v && row.a.$v < 10))",
+      "_check/$e": "$((0 < row.a.$v && row.a.$v < 10))",
       "m1": 1,
       "unique": true,
-      "check": "$((0 < row.a.$v && row.a.$v < 10))",
-      "type": "int",
-      "referred_by": [
+      "_check": "$((0 < row.a.$v && row.a.$v < 10))",
+      "_type": "int",
+      "_referred_by": [
         {
           "from_table": "test.Y",
           "from_columns": "a"
@@ -15,21 +15,21 @@
       "required": true
     },
     "b": {
-      "check/$e": "$((row.b.$v * 5 < 100) && (row.b.$v > 0))",
+      "_check/$e": "$((row.b.$v * 5 < 100) && (row.b.$v > 0))",
       "m1": "abc",
       "m2": "$(row.b.$v + row.c.$v)",
       "m3": "$(2 * row.a.$m.m1)",
       "m4": "$((from s:S select col:max(s.a) where s.a > this.b))",
-      "check": "$((row.b.$v * 5 < 100) && (row.b.$v > 0))",
-      "type": "int",
+      "_check": "$((row.b.$v * 5 < 100) && (row.b.$v > 0))",
+      "_type": "int",
       "required": true
     },
     "c": {
-      "expression": 5,
-      "type": "int"
+      "_expression": 5,
+      "_type": "int"
     },
     "d": {
-      "type": "int"
+      "_type": "int"
     },
     "e": {
       "derived_expression": "$(row.b.$v + row.c.$v + row.d.$v)",
@@ -44,12 +44,12 @@
           "fr": "Une ou plusieurs"
         }
       },
-      "type": "int",
+      "_type": "int",
       "derived": true
     },
     "_id": {
-      "type": "uuid",
-      "referred_by": [
+      "_type": "uuid",
+      "_referred_by": [
         {
           "from_table": "test.Y",
           "from_columns": "x_id"
@@ -59,7 +59,7 @@
           "from_columns": "x_id"
         }
       ],
-      "primary_key": true,
+      "_primary_key": true,
       "required": true
     }
   },
@@ -79,12 +79,12 @@
       ]
     ],
     "xc": "Result Metadata",
-    "check": [
+    "_check": [
       "$((0 < a and a < 10))",
       "$(b * 5 < 100)",
       "$(b > 0)"
     ],
-    "referred_by": [
+    "_referred_by": [
       {
         "to_columns": [
           "a"
@@ -124,8 +124,8 @@
         ]
       }
     ],
-    "type": "test.X",
-    "primary_key": [
+    "_type": "test.X",
+    "_primary_key": [
       "_id"
     ]
   }

@@ -3,6 +3,7 @@ package ma.vi.esql.encoder;
 import ma.vi.base.config.Configuration;
 import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.Result;
+import ma.vi.esql.translation.Translatable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.DynamicTest;
@@ -10,6 +11,8 @@ import org.junit.jupiter.api.TestFactory;
 
 import java.util.stream.Stream;
 
+import static ma.vi.esql.encoder.ResultEncoder.TARGET;
+import static ma.vi.esql.translation.Translatable.Target.ESQL;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
@@ -149,10 +152,15 @@ public class JsonEncoderTest extends DataTest {
 
                      ResultEncoder encoder = new JsonResultEncoder();
 
-                     // System.out.println(new JSONObject(encoder.encode(db.structure().relation("test.X"))));
 
                      assertTrue(new JSONObject(loadTextResource("/x_struct.json"))
                                       .similar(new JSONObject(encoder.encode(db.structure().relation("test.X")))));
+
+                     assertTrue(new JSONObject(loadTextResource("/x3_struct.json"))
+                                      .similar(new JSONObject(encoder.encode(db.structure().relation("test.X"),
+                                                                             Configuration.of(TARGET, ESQL)))));
+
+                     System.out.println(encoder.encode(db.structure().relation("test.Y")));
                      assertTrue(new JSONObject(loadTextResource("/y_struct.json"))
                                       .similar(new JSONObject(encoder.encode(db.structure().relation("test.Y")))));
                      assertTrue(new JSONObject(loadTextResource("/z_struct.json"))

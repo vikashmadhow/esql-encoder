@@ -6,6 +6,7 @@ package ma.vi.esql.encoder;
 
 import ma.vi.base.config.Configuration;
 import ma.vi.base.tuple.T2;
+import ma.vi.esql.builder.Attributes;
 import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.ResultColumn;
@@ -36,8 +37,10 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
+import static ma.vi.esql.builder.Attributes.TYPE;
 import static ma.vi.esql.database.Database.NULL_DB;
 import static ma.vi.esql.database.EsqlConnection.NULL_CONNECTION;
+import static ma.vi.esql.translation.Translatable.Target;
 import static ma.vi.esql.translation.Translatable.Target.ESQL;
 import static ma.vi.esql.translation.Translatable.Target.JAVASCRIPT;
 import static org.apache.commons.lang3.StringUtils.repeat;
@@ -111,10 +114,10 @@ public class JsonResultEncoder implements ResultEncoder {
         Map<String, Object> attributes = new HashMap<>(rs.query.resultAttributes() != null
                                                      ? rs.query.resultAttributes()
                                                      : emptyMap());
-        if (!attributes.containsKey("type")
+        if (!attributes.containsKey(TYPE)
          && rs.query.query() != null) {
           SingleTableExpr table = rs.query.query().tables().find(SingleTableExpr.class);
-          if (table != null) attributes.put("type", table.tableName());
+          if (table != null) attributes.put(TYPE, table.tableName());
         }
         if (!attributes.isEmpty()) {
           /*
@@ -242,14 +245,15 @@ public class JsonResultEncoder implements ResultEncoder {
                      Configuration params) {
     try {
       int indent = params.get(INDENT, 2);
+      Target target = params.get(TARGET, JAVASCRIPT);
 
       out.write("{\n");
       List<T2<Relation, Column>> columns = relation.columns();
       Map<String, Attribute> attributes = new HashMap<>(relation.attributes() != null
                                                       ? relation.attributes()
                                                       : emptyMap());
-      if (!attributes.containsKey("type")) {
-        attributes.put("type", Attribute.from(null, "type", relation.name()));
+      if (!attributes.containsKey(TYPE)) {
+        attributes.put(TYPE, Attribute.from(null, TYPE, relation.name()));
       }
       /*
        * Output relation metadata. E.g.:
@@ -265,7 +269,7 @@ public class JsonResultEncoder implements ResultEncoder {
         else       out.write(",\n");
         out.write(repeat(' ', indent));
         out.write('"' + a.getKey() + "\":");
-        out.write(toJson(a.getValue().attributeValue(), indent));
+        out.write(toJson(a.getValue().attributeValue(), indent, target));
       }
       out.write("\n}");
 
@@ -301,7 +305,7 @@ public class JsonResultEncoder implements ResultEncoder {
             if (c.derived()) {
               out.write('\n' + repeat(' ', indent * 2));
               out.write("\"derived_expression\": ");
-              out.write(toJson(c.expression()));
+              out.write(toJson(c.expression(), 0, target));
               firstIndex = false;
             }
 
@@ -314,7 +318,7 @@ public class JsonResultEncoder implements ResultEncoder {
                   if (firstIndex) firstIndex = false;
                   else            out.write(",\n");
                   out.write(repeat(' ', indent * 2)
-                          + '"' + a.name() + "\":" + toJson(a.attributeValue(), indent));
+                          + '"' + a.name() + "\":" + toJson(a.attributeValue(), indent, target));
                 }
               }
               out.write('\n' + repeat(' ', indent));
@@ -337,14 +341,14 @@ public class JsonResultEncoder implements ResultEncoder {
    *               in the encoded output.
    * @return The encoded value.
    */
-  public static String toJson(Object value, int indent) {
+  public static String toJson(Object value, int indent, Target target) {
     if (value instanceof Literal<?> l) {
       if (value instanceof UncomputedExpression u) {
-        try                { value = u.translate(JAVASCRIPT); }
-        catch(Exception x) { value = u.translate(ESQL); }
+        try                { value = u.translate(target); }
+        catch(Exception x) { value = u.translate(ESQL);   }
       } else {
         try {
-          value = l.exec(JAVASCRIPT,
+          value = l.exec(target,
                          NULL_CONNECTION,
                          new EsqlPath(l),
                          HashPMap.empty(IntTreePMap.empty()),
@@ -358,8 +362,8 @@ public class JsonResultEncoder implements ResultEncoder {
         }
       }
     } else if (value instanceof Expression<?,?> e) {
-      try                { value = "$(" + e.translate(JAVASCRIPT) + ')'; }
-      catch(Exception x) { value = "$(" + e.translate(ESQL) + ')'; }
+      try                { value = "$(" + e.translate(target) + ')'; }
+      catch(Exception x) { value = "$(" + e.translate(ESQL) + ')';   }
     }
 
     if (value == null) {
@@ -451,6 +455,10 @@ public class JsonResultEncoder implements ResultEncoder {
        */
       return quote(value.toString());
     }
+  }
+
+  public static String toJson(Object value, int indent) {
+    return toJson(value, indent, JAVASCRIPT);
   }
 
   /**

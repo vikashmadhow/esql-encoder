@@ -166,6 +166,11 @@ public interface ResultEncoder {
   String INDENT = "INDENT";
 
   /**
+   * The target to encode expressions to; default is JAVASCRIPT.
+   */
+  String TARGET = "TARGET";
+
+  /**
    * Only output structure of result when set to true in config.
    */
   String STRUCTURE_ONLY = "STRUCTURE_ONLY";
