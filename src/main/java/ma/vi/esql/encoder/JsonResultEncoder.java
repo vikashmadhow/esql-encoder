@@ -116,7 +116,9 @@ public class JsonResultEncoder implements ResultEncoder {
                                                      : emptyMap());
         if (!attributes.containsKey(TYPE)
          && rs.query.query() != null) {
-          SingleTableExpr table = rs.query.query().tables().find(SingleTableExpr.class);
+          SingleTableExpr table = rs.query.query().tables() != null
+                                ? rs.query.query().tables().find(SingleTableExpr.class)
+                                : null;
           if (table != null) attributes.put(TYPE, table.tableName());
         }
         if (!attributes.isEmpty()) {

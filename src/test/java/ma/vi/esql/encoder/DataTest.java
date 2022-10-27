@@ -45,7 +45,7 @@ public class DataTest {
                                 validate_unique: [['a', 'b', 'e']],
                                 dependents: {
                                   links: {
-                                    type: 'a.b.T',
+                                    _type: 'a.b.T',
                                     referred_by: 's_id',
                                     label: 'S Links'
                                   }

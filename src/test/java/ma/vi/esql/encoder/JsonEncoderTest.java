@@ -3,7 +3,6 @@ package ma.vi.esql.encoder;
 import ma.vi.base.config.Configuration;
 import ma.vi.esql.database.EsqlConnection;
 import ma.vi.esql.exec.Result;
-import ma.vi.esql.translation.Translatable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.DynamicTest;
@@ -11,9 +10,9 @@ import org.junit.jupiter.api.TestFactory;
 
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static ma.vi.esql.encoder.ResultEncoder.TARGET;
 import static ma.vi.esql.translation.Translatable.Target.ESQL;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
 /**
@@ -68,6 +67,21 @@ public class JsonEncoderTest extends DataTest {
                      rs = con.exec("select * from test.X order  by a");
                      assertTrue(new JSONObject(hideUuids(loadTextResource("/testout1.json"))).getJSONArray("rows")
                                   .similar(new JSONArray(hideUuids(encoder.encode(rs, Configuration.of(ResultEncoder.ROWS_ONLY, true))))));
+                   }
+                 }));
+  }
+
+  @TestFactory
+  Stream<DynamicTest> encodeSelectFromSequenceWithoutTables() {
+    return Stream.of(databases)
+                 .map(db -> dynamicTest(db.target().toString(), () -> {
+                   try (EsqlConnection con = db.esql(db.pooledConnection())) {
+                     con.exec("drop sequence test.seq.X");
+                     con.exec("create sequence test.seq.X start 1000");
+
+                     ResultEncoder encoder = new JsonResultEncoder();
+                     Result rs = con.exec("select nextvalue('test.seq.X')");
+                     System.out.println(encoder.encode(rs));
                    }
                  }));
   }
@@ -152,7 +166,7 @@ public class JsonEncoderTest extends DataTest {
 
                      ResultEncoder encoder = new JsonResultEncoder();
 
-
+                     System.out.println(encoder.encode(db.structure().relation("test.X")));
                      assertTrue(new JSONObject(loadTextResource("/x_struct.json"))
                                       .similar(new JSONObject(encoder.encode(db.structure().relation("test.X")))));
 
