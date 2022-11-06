@@ -1,38 +1,40 @@
 {
   "columns": {
     "a": {
+      "_check": "$((0 < row.a.$v && row.a.$v < 10))",
       "_check/$e": "$((0 < row.a.$v && row.a.$v < 10))",
+      "_type": "int",
       "m1": 1,
       "unique": true,
-      "_check": "$((0 < row.a.$v && row.a.$v < 10))",
-      "_type": "int",
+      "required": true,
       "_referred_by": [
         {
           "from_table": "test.Y",
           "from_columns": "a"
         }
-      ],
-      "required": true
+      ]
     },
     "b": {
-      "_check/$e": "$((row.b.$v * 5 < 100) && (row.b.$v > 0))",
       "m1": "abc",
       "m2": "$(row.b.$v + row.c.$v)",
       "m3": "$(2 * row.a.$m.m1)",
-      "m4": "$((from s:S select col:max(s.a) where s.a > this.b))",
-      "_check": "$((row.b.$v * 5 < 100) && (row.b.$v > 0))",
+      "m4": "$((await $exec.select(`(from s:S select col:max(s.a) where s.a > this.b)`)))",
       "_type": "int",
-      "required": true
+      "required": true,
+      "_check": "$((row.b.$v * 5 < 100) && (row.b.$v > 0))",
+      "_check/$e": "$((row.b.$v * 5 < 100) && (row.b.$v > 0))"
     },
     "c": {
-      "_expression": 5,
-      "_type": "int"
+      "_type": "int",
+      "_expression": 5
     },
     "d": {
       "_type": "int"
     },
     "e": {
       "derived_expression": "$(row.b.$v + row.c.$v + row.d.$v)",
+      "_type": "int",
+      "derived": true,
       "m3": 10,
       "values": {
         "all": {
@@ -43,12 +45,12 @@
           "en": "Any",
           "fr": "Une ou plusieurs"
         }
-      },
-      "_type": "int",
-      "derived": true
+      }
     },
     "_id": {
       "_type": "uuid",
+      "required": true,
+      "_primary_key": true,
       "_referred_by": [
         {
           "from_table": "test.Y",
@@ -58,27 +60,14 @@
           "from_table": "test.Z",
           "from_columns": "x_id"
         }
-      ],
-      "_primary_key": true,
-      "required": true
+      ]
     }
   },
   "$m": {
-    "unique": [
-      [
-        "a"
-      ],
-      [
-        "a",
-        "b"
-      ],
-      [
-        "b",
-        "c",
-        "d"
-      ]
+    "_primary_key": [
+      "_id"
     ],
-    "xc": "Result Metadata",
+    "_type": "test.X",
     "_check": [
       "$((0 < a and a < 10))",
       "$(b * 5 < 100)",
@@ -124,9 +113,20 @@
         ]
       }
     ],
-    "_type": "test.X",
-    "_primary_key": [
-      "_id"
+    "xc": "Result Metadata",
+    "unique": [
+      [
+        "a"
+      ],
+      [
+        "a",
+        "b"
+      ],
+      [
+        "b",
+        "c",
+        "d"
+      ]
     ]
   }
 }

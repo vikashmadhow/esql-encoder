@@ -236,6 +236,7 @@ public class JsonResultEncoder implements ResultEncoder {
         if (!first) out.write("\n]\n");
       }
       if (!rowsOnly) out.write("}");
+      out.flush();
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
     }
@@ -331,6 +332,7 @@ public class JsonResultEncoder implements ResultEncoder {
         out.write("\n}");
       }
       out.write("}");
+      out.flush();
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
     }
