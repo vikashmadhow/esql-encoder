@@ -27,7 +27,8 @@ public class JsonEncoderTest extends DataTest {
                      con.exec("drop table test.X");
                      con.exec("""
                             create table test.X drop undefined({
-                                xc: 'Result Metadata'
+                                xc: 'Result Metadata',
+                                yc: $(a + b * e)
                               }
                               _id uuid not null,
                               a int {
@@ -60,7 +61,7 @@ public class JsonEncoderTest extends DataTest {
                      ResultEncoder encoder = new JsonResultEncoder();
 
                      Result rs = con.exec("select * from t:test.X order by a");
-                     // System.out.println(encoder.encode(rs));
+                     System.out.println(encoder.encode(rs));
                      assertTrue(new JSONObject(hideUuids(loadTextResource("/testout1.json")))
                                   .similar(new JSONObject(hideUuids(encoder.encode(rs)))));
 

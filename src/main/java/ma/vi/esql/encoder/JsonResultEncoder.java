@@ -6,7 +6,6 @@ package ma.vi.esql.encoder;
 
 import ma.vi.base.config.Configuration;
 import ma.vi.base.tuple.T2;
-import ma.vi.esql.builder.Attributes;
 import ma.vi.esql.exec.ColumnMapping;
 import ma.vi.esql.exec.Result;
 import ma.vi.esql.exec.ResultColumn;
