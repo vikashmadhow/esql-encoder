@@ -1,77 +1,13 @@
 {
-  "columns": {
-    "a": {
-      "_check": "$((0 < row.a.$v && row.a.$v < 10))",
-      "_check/$e": "$((0 < row.a.$v && row.a.$v < 10))",
-      "_type": "int",
-      "m1": 1,
-      "unique": true,
-      "required": true,
-      "_referred_by": [
-        {
-          "from_table": "test.Y",
-          "from_columns": "a"
-        }
-      ]
-    },
-    "b": {
-      "m1": "abc",
-      "m2": "$(row.b.$v + row.c.$v)",
-      "m3": "$(2 * row.a.$m.m1)",
-      "m4": "$((await $exec.select(`(from s:S select col:max(s.a) where s.a > this.b)`)))",
-      "_type": "int",
-      "required": true,
-      "_check": "$((row.b.$v * 5 < 100) && (row.b.$v > 0))",
-      "_check/$e": "$((row.b.$v * 5 < 100) && (row.b.$v > 0))"
-    },
-    "c": {
-      "_type": "int",
-      "_expression": 5
-    },
-    "d": {
-      "_type": "int"
-    },
-    "e": {
-      "derived_expression": "$(row.b.$v + row.c.$v + row.d.$v)",
-      "_type": "int",
-      "derived": true,
-      "m3": 10,
-      "values": {
-        "all": {
-          "en": "All",
-          "fr": "Toutes"
-        },
-        "any": {
-          "en": "Any",
-          "fr": "Une ou plusieurs"
-        }
-      }
-    },
-    "_id": {
-      "_type": "uuid",
-      "required": true,
-      "_primary_key": true,
-      "_referred_by": [
-        {
-          "from_table": "test.Y",
-          "from_columns": "x_id"
-        },
-        {
-          "from_table": "test.Z",
-          "from_columns": "x_id"
-        }
-      ]
-    }
-  },
   "$m": {
     "_primary_key": [
       "_id"
     ],
     "_type": "test.X",
     "_check": [
-      "$((0 < a and a < 10))",
-      "$(b * 5 < 100)",
-      "$(b > 0)"
+      "$((0 < row.a.$v && row.a.$v < 10))",
+      "$(row.b.$v * 5 < 100)",
+      "$(row.b.$v > 0)"
     ],
     "_referred_by": [
       {
@@ -128,5 +64,69 @@
         "d"
       ]
     ]
+  },
+  "columns": {
+    "_id": {
+      "_type": "uuid",
+      "required": true,
+      "_primary_key": true,
+      "_referred_by": [
+        {
+          "from_table": "test.Y",
+          "from_columns": "x_id"
+        },
+        {
+          "from_table": "test.Z",
+          "from_columns": "x_id"
+        }
+      ]
+    },
+    "a": {
+      "_type": "int",
+      "m1": 1,
+      "required": true,
+      "_check": "$((0 < row.a.$v && row.a.$v < 10))",
+      "_check/$e": "$((0 < row.a.$v && row.a.$v < 10))",
+      "unique": true,
+      "_referred_by": [
+        {
+          "from_table": "test.Y",
+          "from_columns": "a"
+        }
+      ]
+    },
+    "b": {
+      "m1": "abc",
+      "m2": "$(row.b.$v + row.c.$v)",
+      "m3": "$(2 * row.a.$m.m1)",
+      "m4": "$((await $exec.select(`(from s:S select col:max(s.a) where s.a > this.b)`)))",
+      "_type": "int",
+      "required": true,
+      "_check": "$((row.b.$v * 5 < 100) && (row.b.$v > 0))",
+      "_check/$e": "$((row.b.$v * 5 < 100) && (row.b.$v > 0))"
+    },
+    "c": {
+      "_type": "int",
+      "_expression": 5
+    },
+    "d": {
+      "_type": "int"
+    },
+    "e": {
+      "derived_expression": "$(row.b.$v + row.c.$v + row.d.$v)",
+      "_type": "int",
+      "derived": true,
+      "m3": 10,
+      "values": {
+        "all": {
+          "en": "All",
+          "fr": "Toutes"
+        },
+        "any": {
+          "en": "Any",
+          "fr": "Une ou plusieurs"
+        }
+      }
+    }
   }
 }
