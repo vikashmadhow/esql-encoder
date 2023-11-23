@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.6] - 2023-11-23
+### Added
+- `build.grade` updated to be compatible with Gradle version 8.
+- Changed tests to reflect the new encodings produced.
+
 ## [0.3.5] - 2022-12-25
 ### Added
 - Test updated to align with changed to version 1.3.1 of ESQL where result attributes

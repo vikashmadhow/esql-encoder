@@ -1,41 +1,56 @@
 {
-  "$m":{
-    "_primary_key":["_id"],
-    "_type":"test.X",
-    "yc":"$(row.a.$v + row.b.$v * (row.t.$m.b + row.t.$m.c + row.t.$m.d))",
-    "xc":"Result Metadata",
-    "unique":[["a"],["a","b"],["b","c","d"]]
+  "$m": {
+    "_primary_key": [
+      "_id"
+    ],
+    "_type": "test.X",
+    "yc": "$(row.a.$v + row.b.$v * (row.t.$m.b + row.t.$m.c + row.t.$m.d))",
+    "xc": "Result Metadata",
+    "unique": [
+      [
+        "a"
+      ],
+      [
+        "a",
+        "b"
+      ],
+      [
+        "b",
+        "c",
+        "d"
+      ]
+    ]
   },
-  "columns":{
-    "_id":{
-      "_type":"uuid",
-      "_primary_key":true,
-      "required":true
+  "columns": {
+    "_id": {
+      "_type": "uuid",
+      "_primary_key": true,
+      "required": true
     },
-    "a":{
-      "m1":1,
-      "unique":true,
-      "_type":"int"
+    "a": {
+      "m1": 1,
+      "unique": true,
+      "_type": "int"
     },
-    "b":{
-      "m1":"abc",
-      "m4":"$(row.a.$m.m1 * 5)",
-      "_type":"int",
-      "m2/$e":"$(row.b.$v + row.c.$v)",
-      "m3/$e":"$(2 * row.b.$v)",
-      "required":true
+    "b": {
+      "m1": "abc",
+      "m4": "$(row.a.$m.m1 * 5)",
+      "_type": "int",
+      "m2/$e": "$(row.b.$v + row.c.$v)",
+      "m3/$e": "$(2 * row.b.$v)",
+      "required": true
     },
-    "c":{
-      "_type":"int",
-      "_expression":5
+    "c": {
+      "_type": "int",
+      "_expression": 5
     },
-    "d":{
-      "_type":"int"
+    "d": {
+      "_type": "int"
     },
-    "e":{
-      "$e":"$(row.b.$v + row.c.$v + row.d.$v)",
-      "m3":10,
-      "values":{
+    "e": {
+      "$e": "$(row.b.$v + row.c.$v + row.d.$v)",
+      "m3": 10,
+      "values": {
         "all": {
           "en": "All",
           "fr": "Toutes"
@@ -45,13 +60,52 @@
           "fr": "Une ou plusieurs"
         }
       },
-      "_type":"int",
-      "derived":true
+      "_type": "int",
+      "derived": true
     }
   },
-  "rows":[
-    ["fdda0e19-fafe-4dfd-a26d-53aa3cfa7ad6", 1, {"$v":2, "$m":{"m2":5, "m3":4}}, 3, 4, 9],
-    ["8db88d85-db73-4f91-b590-5efbe50d4b69", 3, {"$v":4, "$m":{"m2":9, "m3":8}}, 5, 5, 14],
-    ["255c293e-0d19-4aec-8a7a-4f18cec453c2", 5, {"$v":6, "$m":{"m2":13, "m3":12}}, 7, 8, 21]
+  "rows": [
+    [
+      "546c6b15-3927-41e1-807b-38fb9cb22639",
+      1,
+      {
+        "$v": 2,
+        "$m": {
+          "m2": 5,
+          "m3": 4
+        }
+      },
+      3,
+      4,
+      9
+    ],
+    [
+      "b2b5bc20-89f7-4680-aab3-387312b1a77b",
+      3,
+      {
+        "$v": 4,
+        "$m": {
+          "m2": 9,
+          "m3": 8
+        }
+      },
+      5,
+      5,
+      14
+    ],
+    [
+      "9235b024-a947-4e6b-96d2-aad17a275536",
+      5,
+      {
+        "$v": 6,
+        "$m": {
+          "m2": 13,
+          "m3": 12
+        }
+      },
+      7,
+      8,
+      21
+    ]
   ]
 }

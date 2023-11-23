@@ -1,30 +1,69 @@
 {
-  "$m":{
-    "_type": "test.Z",
-    "_references":[{"to_table":"test.X","to_columns":["_id"],"from_columns":["x_id"]},{"to_table":"test.Y","to_columns":["_id"],"from_columns":["y_id"]}],
-    "_primary_key":["_id"]
+  "$m": {
+    "_primary_key": [
+      "_id"
+    ],
+    "_references": [
+      {
+        "to_table": "test.X",
+        "to_columns": [
+          "_id"
+        ],
+        "forward_cost": 1,
+        "from_columns": [
+          "x_id"
+        ],
+        "reverse_cost": 2
+      },
+      {
+        "to_table": "test.Y",
+        "to_columns": [
+          "_id"
+        ],
+        "forward_cost": 1,
+        "from_columns": [
+          "y_id"
+        ],
+        "reverse_cost": 2
+      }
+    ],
+    "_type": "test.Z"
   },
-  "columns":{
-    "_id":{
-      "_type":"uuid",
-      "required":true,
-      "_primary_key":true
+  "columns": {
+    "_id": {
+      "_type": "uuid",
+      "required": true,
+      "_primary_key": true
     },
-    "a":{
-      "_type":"int",
-      "required":true
+    "a": {
+      "_type": "int",
+      "required": true
     },
-    "b":{
-      "_type":"int",
-      "required":true
+    "b": {
+      "_type": "int",
+      "required": true
     },
-    "x_id":{
-      "_type":"uuid",
-      "_references":[{"to_table":"test.X","to_columns":"_id"}]
+    "x_id": {
+      "_type": "uuid",
+      "_references": [
+        {
+          "to_table": "test.X",
+          "to_columns": "_id",
+          "forward_cost": 1,
+          "reverse_cost": 2
+        }
+      ]
     },
-    "y_id":{
-      "_type":"uuid",
-      "_references":[{"to_table":"test.Y","to_columns":"_id"}]
+    "y_id": {
+      "_type": "uuid",
+      "_references": [
+        {
+          "to_table": "test.Y",
+          "to_columns": "_id",
+          "forward_cost": 1,
+          "reverse_cost": 2
+        }
+      ]
     }
   }
 }

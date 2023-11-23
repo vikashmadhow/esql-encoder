@@ -15,12 +15,51 @@ plugins {
 }
 
 group = 'ma.vi'
-version "0.3.5"
-sourceCompatibility = JavaVersion.VERSION_17
+version "0.3.6"
 
 project.ext {
   moduleName = project.group + '.' + project.name
   isReleaseVersion = !version.endsWith("SNAPSHOT")
+}
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+}
+
+java {
+  sourceCompatibility = JavaVersion.VERSION_17
+
+  withJavadocJar()
+  withSourcesJar()
+}
+
+jar {
+  inputs.property("moduleName", project.moduleName)
+  manifest {
+    attributes('Automatic-Module-Name': project.moduleName)
+  }
+}
+
+dependencies {
+  implementation("ma.vi:esql:latest.release")
+  implementation("commons-io:commons-io:latest.release")
+  implementation("org.apache.commons:commons-lang3:latest.release")
+
+  testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+test {
+  useJUnitPlatform()
+}
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      from components.java
+    }
+  }
 }
 
 projectFilestatistics {
@@ -61,41 +100,4 @@ projectFilestatistics {
   // if you require to over-ride how single and multi-line comments work, or
   // need to add in some extensions which aren't built in...
   // propertyFile = 'over-ride.properties'
-}
-
-jar {
-  inputs.property("moduleName", project.moduleName)
-  manifest {
-    attributes('Automatic-Module-Name': project.moduleName)
-  }
-}
-
-java {
-  withJavadocJar()
-  withSourcesJar()
-}
-
-publishing {
-  publications {
-    mavenJava(MavenPublication) {
-      from components.java
-    }
-  }
-}
-
-repositories {
-  mavenLocal()
-  mavenCentral()
-}
-
-dependencies {
-  implementation("ma.vi:esql:latest.release")
-  implementation("commons-io:commons-io:latest.release")
-  implementation("org.apache.commons:commons-lang3:latest.release")
-
-  testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
-}
-
-test {
-  useJUnitPlatform()
 }
