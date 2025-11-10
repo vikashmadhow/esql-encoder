@@ -43,8 +43,8 @@ jar {
 
 dependencies {
   implementation("ma.vi:esql:latest.release")
-  implementation("commons-io:commons-io:latest.release")
-  implementation("org.apache.commons:commons-lang3:latest.release")
+  implementation("commons-io:commons-io:2.15.1")
+  implementation("org.apache.commons:commons-lang3:3.14.0")
 
   testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
   testRuntimeOnly("org.junit.platform:junit-platform-launcher")
